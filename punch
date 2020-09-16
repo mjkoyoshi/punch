@@ -1,0 +1,131 @@
+#!/bin/bash
+
+set -u
+
+PROGNAME=$(basename $0)
+SCRIPT_DIR=$(cd $(dirname $0); pwd)
+
+if [ -e .env ]; then
+    while read line;do if [ -n "$line" ];then export "$line"; fi done < .env
+fi
+
+VPN=0
+SHOW=1
+SHOW_COUNT=10
+SHOW_ALL=0
+PUNCHIN=0
+PUNCHOUT=0
+
+usage() {
+    echo "Usage: $PROGNAME [OPTIONS]"
+    echo
+    echo "Options:"
+    echo "  -h, --help          Help"
+    echo "  -v, --vpn           Force vpn connect"
+    echo "  -s, --show [COUNT]  Show punch time"
+    echo "  -i, --punch-in      Punch in"
+    echo "  -o, --punch-out     Punch out"
+    echo
+    exit 1
+}
+
+needVpn() {
+    NO_VPN_IP_ADDRESS="${NO_VPN_IP:-""}"
+    GROBAL_IP="$(curl ifconfig.io 2> /dev/null)"
+    if [ "${GROBAL_IP}" = "${NO_VPN_IP_ADDRESS}" ]; then
+        echo 0
+    else
+        echo 1
+    fi
+}
+
+vpnConnect() {
+    if [ "${VPN}" -eq 1 -o "$(needVpn)" -eq 1 ]; then
+        bash ${SCRIPT_DIR}/script/vpnconnect.bash ${VPN_NAME}
+        if [ $? -ne 0 ]; then
+            exit 1
+        fi
+    fi
+}
+
+vpnDisconnect() {
+    vpnConnect
+}
+
+set +u
+
+for OPT in "$@"
+do
+    case $OPT in
+        -h | --help)
+            usage
+            exit 0
+            ;;
+        -v | --vpn)
+            VPN=1
+            shift 1
+            ;;
+        -s | --show)
+            if [[ -z "$2" ]] || [[ "$2" =~ ^-+ ]]; then
+                shift
+            else
+                expr "$2" + 1 > /dev/null
+                if [ $? -lt 2 ]; then
+                    # Numeric
+                    SHOW_COUNT="$2"
+                fi
+                shift 2
+            fi
+            SHOW=1
+            ;;
+        -a | --show-all)
+            SHOW_ALL=1
+            shift 1
+            ;;
+        -i | --punch-in)
+            PUNCHIN=1
+            shift 1
+            ;;
+        -o | --punch-out)
+            PUNCHOUT=1
+            shift 1
+            ;;
+        -- | -)
+            shift 1
+            param+=( "$@" )
+            break
+            ;;
+        -*)
+            echo "$PROGNAME: illegal option -- '$(echo $1 | sed 's/^-*//')'" 1>&2
+            usage
+            exit 1
+            ;;
+        *)
+            if [[ ! -z "$1" ]] && [[ ! "$1" =~ ^-+ ]]; then
+                param+=( "$1" )
+                shift 1
+            fi
+            ;;
+    esac
+done
+
+set -u
+
+vpnConnect
+
+if [ "${PUNCHIN}" -eq 1 ]; then
+    echo Punch In!!!
+    node ${SCRIPT_DIR}/src/punch.js -i
+elif [ "${PUNCHOUT}" -eq 1 ]; then
+    echo Pnch Out!!!
+    node ${SCRIPT_DIR}/src/punch.js -o
+elif [ "${SHOW_ALL}" -eq 1 ]; then
+    echo Show All Punch Time!!!
+    node ${SCRIPT_DIR}/src/punch.js -a
+else
+    echo Show Punch Time!!!
+    node ${SCRIPT_DIR}/src/punch.js -s ${SHOW_COUNT}
+fi
+
+vpnDisconnect
+
