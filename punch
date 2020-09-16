@@ -117,7 +117,7 @@ if [ "${PUNCHIN}" -eq 1 ]; then
     echo Punch In!!!
     node ${SCRIPT_DIR}/src/punch.js -i
 elif [ "${PUNCHOUT}" -eq 1 ]; then
-    echo Pnch Out!!!
+    echo Punch Out!!!
     node ${SCRIPT_DIR}/src/punch.js -o
 elif [ "${SHOW_ALL}" -eq 1 ]; then
     echo Show All Punch Time!!!
