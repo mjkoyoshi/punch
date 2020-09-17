@@ -4,7 +4,7 @@ set -u
 
 PROGNAME=$(basename $0)
 SCRIPT_DIR=$(cd $(dirname $0); pwd)
-XTRACE_OPT=""
+XTRACE_OPT=+x
 if set +o | grep -q "set -o xtrace"; then
     XTRACE_OPT=-x
 fi
