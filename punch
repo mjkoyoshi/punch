@@ -27,6 +27,7 @@ usage() {
     echo "  -h, --help          Help"
     echo "  -v, --vpn           Force vpn connect"
     echo "  -s, --show [COUNT]  Show punch time"
+    echo "  -a, --show-all      Show all punch time"
     echo "  -i, --punch-in      Punch in"
     echo "  -o, --punch-out     Punch out"
     echo
