@@ -4,6 +4,10 @@ set -u
 
 PROGNAME=$(basename $0)
 SCRIPT_DIR=$(cd $(dirname $0); pwd)
+XTRACE_OPT=""
+if set +o | grep -q "set -o xtrace"; then
+    XTRACE_OPT=-x
+fi
 
 if [ -e .env ]; then
     while read line;do if [ -n "$line" ];then export "$line"; fi done < .env
@@ -41,7 +45,7 @@ needVpn() {
 
 vpnConnect() {
     if [ "${VPN}" -eq 1 -o "$(needVpn)" -eq 1 ]; then
-        bash ${SCRIPT_DIR}/script/vpnconnect.bash ${VPN_NAME}
+        bash "$XTRACE_OPT" ${SCRIPT_DIR}/script/vpnconnect.bash ${VPN_NAME}
         if [ $? -ne 0 ]; then
             exit 1
         fi
