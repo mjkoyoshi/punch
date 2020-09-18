@@ -69,8 +69,12 @@ function disconnect() {
     fi
 }
 
-if is_disconnected "$vpn"; then
-    connect
+if [ $# -eq 2 ]; then
+    eval ${2}
 else
-    disconnect
+    if is_disconnected "$vpn"; then
+        connect
+    else
+        disconnect
+    fi
 fi

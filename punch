@@ -46,7 +46,7 @@ needVpn() {
 
 vpnConnect() {
     if [ "${VPN}" -eq 1 -o "$(needVpn)" -eq 1 ]; then
-        bash "$XTRACE_OPT" ${SCRIPT_DIR}/script/vpnconnect.bash ${VPN_NAME}
+        bash "$XTRACE_OPT" ${SCRIPT_DIR}/script/vpnconnect.bash ${VPN_NAME} "connect"
         if [ $? -ne 0 ]; then
             exit 1
         fi
@@ -54,7 +54,12 @@ vpnConnect() {
 }
 
 vpnDisconnect() {
-    vpnConnect
+    if [ "${VPN}" -eq 1 -o "$(needVpn)" -eq 1 ]; then
+        bash "$XTRACE_OPT" ${SCRIPT_DIR}/script/vpnconnect.bash ${VPN_NAME} "disconnect"
+        if [ $? -ne 0 ]; then
+            exit 1
+        fi
+    fi
 }
 
 set +u
